@@ -19,7 +19,7 @@ var app = (function() {
     console.log('x: '+clickX+' y: '+clickY);
     elements.forEach(function(element) {
       if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
-        element.action();
+        if (element.action) {element.action()};
         console.log('clicked: ' + element.name);
       }
     });
@@ -56,6 +56,7 @@ var app = (function() {
   };
 
   function update(dt) {
+    ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
     if (CURR_STATE !== LAST_STATE) {
       elements = [];
       var load = CURR_STATE + 'Load';
@@ -66,7 +67,17 @@ var app = (function() {
     api[run](dt,elements);
   };
 
+  //Home screen
   api.splashLoad = function() {
+    var splashImg = new Image();
+    splashImg.ready = false;
+    splashImg.onload = setAssetReady;
+    splashImg.src = 'imgs/splash2.jpg';
+    splashImg.left = 0;
+    splashImg.top = 0;
+    splashImg.name = 'splashImg';
+    elements.push(splashImg);
+
     var startImg = new Image();
     startImg.ready = false;
     startImg.onload = setAssetReady;
@@ -78,31 +89,52 @@ var app = (function() {
       CURR_STATE = GAME_STATES[1];
     }
     elements.push(startImg);
+
     return elements;
   };
 
   api.splashRun = function(dt,elements) {
-    var splashImg = new Image();
-    splashImg.ready = false;
-    splashImg.onload = setAssetReady;
-    splashImg.src = 'imgs/splash2.jpg';
-    ctx.drawImage(splashImg,0,0);
+
+//    ctx.drawImage(splashImg,0,0);
     drawElements(elements);
     ctx.font = '30px Arial';
     ctx.fillStyle = '#00f';
     ctx.fillText('DJ SANKE', 90, CANVAS_HEIGHT/4);
   };
-  
+
+  //Game
   api.gameLoad = function() {
-  }
-  
+    var bgImg = new Image();
+    bgImg.ready = false;
+    bgImg.onload = setAssetReady;
+    bgImg.src = 'imgs/splash2.jpg';
+    bgImg.left = 0;
+    bgImg.top = 0;
+    bgImg.name = 'bgImg';
+    elements.push(bgImg);
+    
+    var deckImg = new Image();
+    deckImg.ready = false;
+    deckImg.onload = setAssetReady;
+    deckImg.src = 'imgs/deck.jpg';
+    deckImg.left = 0;
+    deckImg.top = 160;
+    deckImg.name = 'deckImg';
+    deckImg.action = function() {
+      console.log('click deck');
+    }
+    elements.push(deckImg);
+  };
+
   api.gameRun = function() {
-  }
+    drawElements(elements);
+  };
+  
+  //Leaderboard
 
   return api;
 })();
-//Home screen
 
-//Leaderboard
+//Grid 106
 
-//Game init
+//Panel 320
