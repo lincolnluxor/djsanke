@@ -18,28 +18,29 @@ var app = (function() {
   var level;
   var actions = 0;
   var score;
+  var now, dt,
+      last = timestamp();
+  var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '600px', right: '5px' }); //for devel. shows FPS on screen.
 
+  //Click listener
   canvas.addEventListener('click',function(e) {
     var clickX = e.pageX - canvasLeft;
     var clickY = e.pageY - canvasTop;
-//    console.log('x: '+clickX+' y: '+clickY);
+//    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
     elements.forEach(function(element) {
       if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
         if (element.action) {element.action()};
-//        console.log('clicked: ' + element.name);
+//        console.log('clicked: ' + element.name); for devel. shows element(s) that was clicked
       }
     });
   });
 
+  //timing
   function timestamp() {
     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
   };
 
-  var now, dt,
-      last = timestamp();
-  var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '600px', right: '5px' });
-
-
+  //game loop
   function frame(running) {
     fpsmeter.tickStart();
     now = timestamp();
@@ -49,18 +50,22 @@ var app = (function() {
     requestAnimationFrame(frame);
     fpsmeter.tick();
   }
+  //start loop
   requestAnimationFrame(frame);
 
+  //check to see if images are loaded
   function setAssetReady() {
     this.ready = true;
   };
 
+  //loop through elements array and paint to ctx
   function drawElements(elements) {
     elements.forEach(function(element) {
       ctx.drawImage(element, element.left, element.top);
     });
   };
 
+  //update state of the game
   function update(dt) {
     ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
     if (CURR_STATE !== LAST_STATE) {
@@ -73,10 +78,11 @@ var app = (function() {
     api[run](dt,elements);
   };
 
-  //Home screen
+  //Home screen before run
   api.splashLoad = function() {
-    level = 0;
-    score = 0;
+    level = 0; //reset levels
+    score = 0; //reset score
+
     var splashImg = new Image();
     splashImg.ready = false;
     splashImg.onload = setAssetReady;
@@ -92,61 +98,67 @@ var app = (function() {
     return elements;
   };
 
+  //Home screen running
   api.splashRun = function(dt,elements) {
-
-//    ctx.drawImage(splashImg,0,0);
     drawElements(elements);
-//    ctx.font = '48px VT323';
-//    ctx.fillStyle = '#fff';
-//    ctx.fillText('DJ SANKE', 80, 320);
   };
 
-  //Game
+  //Game loading
   api.gameLoad = function() {
-    var bgImg = new Image();
-    bgImg.ready = false;
-    bgImg.onload = setAssetReady;
-    bgImg.src = 'imgs/header.png';
-    bgImg.left = 0;
-    bgImg.top = 0;
-    bgImg.name = 'bgImg';
-    elements.push(bgImg);
+    var headerImg = new Image();
+    headerImg.ready = false;
+    headerImg.onload = setAssetReady;
+    headerImg.src = 'imgs/header.png';
+    headerImg.left = 0;
+    headerImg.top = 0;
+    headerImg.name = 'headerImg';
+    elements.push(headerImg);
 
-    var deckImg = new Image();
-    deckImg.ready = false;
-    deckImg.onload = setAssetReady;
-    deckImg.src = 'imgs/HUD.png';
-    deckImg.left = 0;
-    deckImg.top = 152;
-    deckImg.name = 'deckImg';
-    deckImg.action = function() {
+    //for devel. this will be replaced with all of the individual components
+    var hudImg = new Image();
+    hudImg.ready = false;
+    hudImg.onload = setAssetReady;
+    hudImg.src = 'imgs/HUD.png';
+    hudImg.left = 0;
+    hudImg.top = 152;
+    hudImg.name = 'hudImg';
+    hudImg.action = function() {
       //check here to see if they clicked or moved correctly
+
+      //update timer
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
+
+      //Increment actions
       actions += 1;
-//      var tl = ;
-      score = score + (320 + api.findElementProp('barImg','left') + (level * 4));
+
+      //Update score
+      score = score + (320 + api.findElementProp('timeBarImg','left') + (level * 4));
+
+      //Check to see if requirements are met to move to next level
       if (actions > 10) {
         CURR_STATE = GAME_STATES[3];
       }
     }
-    elements.push(deckImg);
+    elements.push(hudImg);
 
-    var barImg = new Image();
-    barImg.ready = false;
-    barImg.onload = setAssetReady;
-    barImg.src = 'imgs/bar.jpg';
-    barImg.left = 0;
-    barImg.top = 139;
-    barImg.name = 'barImg';
-    elements.push(barImg);
+    var timeBarImg = new Image();
+    timeBarImg.ready = false;
+    timeBarImg.onload = setAssetReady;
+    timeBarImg.src = 'imgs/bar.jpg';
+    timeBarImg.left = 0;
+    timeBarImg.top = 139;
+    timeBarImg.name = 'timeBarImg';
+    elements.push(timeBarImg);
 
     lastTime = parseInt(new Date().getTime()/getBarSpeed());
   };
 
+  //Game running
   api.gameRun = function(time) {
     currTime = parseInt(new Date().getTime()/getBarSpeed());
-    api.updateElement('barImg','left',lastTime - currTime);
+    api.updateElement('timeBarImg','left',lastTime - currTime);
 
+    //Check to see if they ran out of time
     if (lastTime - currTime > -320) {
       drawElements(elements);
       ctx.font = '48px VT323';
@@ -167,7 +179,8 @@ var app = (function() {
       }
     });
   };
-  
+
+  //find a property value of an element
   api.findElementProp = function(name, prop) {
     var elProp;
     elements.forEach(function(element) {
@@ -210,8 +223,6 @@ var app = (function() {
   api.getElements = function() {
     return elements;
   }
-
-  //Leaderboard
 
   return api;
 })();
