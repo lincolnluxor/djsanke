@@ -12,7 +12,7 @@ var app = (function() {
   var GAME_STATES = ['splash','game','leaderboard','levelup'];
   var CURR_STATE = GAME_STATES[0];
   var LAST_STATE;
-  var startTime;
+  var currTime;
   var lastTime;
   var timer = [30,20,10,7];
   var level;
@@ -52,7 +52,7 @@ var app = (function() {
   function setAssetReady() {
     this.ready = true;
   };
-  
+
   function drawElements(elements) {
     elements.forEach(function(element) {
       ctx.drawImage(element, element.left, element.top);
@@ -133,13 +133,14 @@ var app = (function() {
   };
 
   api.gameRun = function(time) {
-    startTime = parseInt(new Date().getTime()/getBarSpeed());
-    api.updateElement('barImg','left',lastTime - startTime);
-    if (lastTime - startTime > -320) {
+    currTime = parseInt(new Date().getTime()/getBarSpeed());
+    api.updateElement('barImg','left',lastTime - currTime);
+
+    if (lastTime - currTime > -320) {
       drawElements(elements);
     } else {
-//      CURR_STATE = GAME_STATES[0];
-      CURR_STATE = GAME_STATES[3];
+      CURR_STATE = GAME_STATES[0];
+//      CURR_STATE = GAME_STATES[3]; //for devel... levels up
     }
   };
 
@@ -160,10 +161,11 @@ var app = (function() {
   };
   
   function getBarSpeed() {
+    console.log(level);
     if (level > 3) {
       barSpeed = timer[3];
     } else {
-      barSpeed = timer[level - 1];
+      barSpeed = timer[level];
     }
     return barSpeed;
   }
