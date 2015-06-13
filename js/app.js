@@ -102,10 +102,11 @@ var app = (function() {
   //loop through elements array and paint to ctx
   function drawElements(elements) {
     elements.forEach(function(element) {
-      var thisImg = element;
-      if ('type' in element && element.type === 'widgetController') {
-        thisImg = element.getImage();
-      }
+      // var thisImg = element;
+      // if ('controllerID' in element) { console.log(element); }
+      // if ('controllerID' in element) {
+      //   thisImg = element.getImage();
+      // }
 
       // if ('rotation' in thisImg) {
       //   // left = 0;
@@ -121,7 +122,7 @@ var app = (function() {
       // //   thisImg.map(function(img) { ctx.drawImage(img, img.left, img.top); })
       // // }
       // else {
-        ctx.drawImage(thisImg, element.left, element.top);
+        ctx.drawImage(element, element.left, element.top);
       // }
     });
   }
@@ -141,8 +142,8 @@ var app = (function() {
 
   function getUpdatedElements(elements) {
     for (var i = 0; i < elements.length; i++) {
-      if ('type' in elements[i] && elements[i].type === 'widgetController') {
-        elements[i] = elements[i].getImage();
+      if ('controllerID' in elements[i]) {
+        elements[i] = api.widgetsControllers[api.getControllerIndex(elements[i].controllerID)].getImage();
       }
     }
     return elements;
@@ -198,27 +199,29 @@ var app = (function() {
 
 
     //for devel. this will be replaced with all of the individual components
-    var widgets = ["dial"]; //"record", , "slider", "button", "switch", "toggle"]
+    var widgets = ["switch"]; //"record", "dial", "slider", "button", "switch", "toggle"]
     wc = widgetsController();
     var widgetAction = function(active, clickX, clickY) {
       //check here to see if they clicked or moved correctly
       var index = api.getControllerIndex(this.controllerID);
       if (index === -1 || api.widgetsControllers[index].updateValue(active, clickX, clickY) === false) { return; }
 
-      //update timer
-      lastTime = parseInt(new Date().getTime()/getBarSpeed());
+      if (active) {
+        //update timer
+        lastTime = parseInt(new Date().getTime()/getBarSpeed());
 
-      //Increment actions
-      actions += 1;
+        //Increment actions
+        actions += 1;
 
-      //Update score
-      score = score + (320 + api.findElementProp('timeBarImg','left') + (level * 4));
+        //Update score
+        score = score + (320 + api.findElementProp('timeBarImg','left') + (level * 4));
 
-      //Check to see if requirements are met to move to next level
-      if (actions > 10) {
-        lastCanvas = ctx.getImageData(0,0,320,480);
-        NEW_STATE = GAME_STATES[3];
-        CURR_STATE = GAME_STATES[5];
+        //Check to see if requirements are met to move to next level
+        if (actions > 10) {
+          lastCanvas = ctx.getImageData(0,0,320,480);
+          NEW_STATE = GAME_STATES[3];
+          CURR_STATE = GAME_STATES[5];
+        }
       }
     };
     for (var i = 0; i < widgets.length; i++) {
@@ -322,7 +325,7 @@ var app = (function() {
       }
     });
     return elProp;
-  }
+  };
 
   //how fast the timer runs... don't ask me to give you a seconds
   function getBarSpeed() {

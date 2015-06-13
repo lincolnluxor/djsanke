@@ -11,7 +11,7 @@ var widgetsController = function() {
       var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type.toString() + 'Controller';
       if (typeof type !== 'undefined' && controllerName in window) {
         var controller = window[controllerName](sizeW, sizeV, type, options); // Call dynamic-named function.
-        controller.type = 'widgetController';
+        // controller.type = 'widgetController';
         return controller;
       }
     }
@@ -120,7 +120,6 @@ var dialController = function(sizeW, sizeV, type, options) {
       }
       // This widget is enabled OR widget not yet enabled but is within clickable limits
       else if (self.enableUpdates || (!self.enableUpdates && self.clickedWithinLimits(relCursorX, relCursorY))) {
-        
         self.enableUpdates = true;
         if (self.startDist === false) {
           self.startX = relCursorX;
@@ -289,19 +288,19 @@ var sliderController = function(sizeW, sizeV, type, options) {
 };
 
 var buttonController = function(sizeW, sizeV, type, options) {
-  var widget = new Image();
-  widget.controller = {
+  controller = {
     size: {width: 0, height: 0},
     // maxDims: {x: 0, y: 0},
     images: {on: '', off: ''},
     value: false,
+    options: {},
 
     init: function(sizeW, sizeV, type, options) {
       var self = this;
 
       self.size.width = sizeW;
       self.size.height = sizeV;
-
+      self.options = options;
 
       if (type === "switch") {
         self.images.on = 'imgs/Switch_Up.png';
@@ -316,9 +315,9 @@ var buttonController = function(sizeW, sizeV, type, options) {
       }
     },
 
-    updateValue: function(relCursorX, relCursorY) {
+    updateValue: function(active, relCursorX, relCursorY) {
       var self = this;
-      if (!self.clickedWithinLimits(relCursorX, relCursorY)) { return false; }
+      if (!active && !self.clickedWithinLimits(relCursorX, relCursorY)) { return false; }
 
       self.value = !self.value;
       return self.getImage();
@@ -334,10 +333,14 @@ var buttonController = function(sizeW, sizeV, type, options) {
 
       var img = new Image();
       img.src = (self.value === true) ? self.images.on : self.images.off;
+
+      for (var key in self.options) {
+        img[key] = options[key];
+      }
       return img;
     }
   };
 
-  widget.controller.init(sizeW, sizeV, type, options);
-  return widget;
+  controller.init(sizeW, sizeV, type, options);
+  return controller;
 };
