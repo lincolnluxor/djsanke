@@ -281,7 +281,7 @@ var app = (function() {
     var transTopImg = new Image();
     transTopImg.ready = false;
     transTopImg.onload = setAssetReady;
-    transTopImg.src = 'imgs/transition.png';
+    transTopImg.src = 'imgs/BG_Gradient.png';
     transTopImg.left = 0;
     transTopImg.top = 0;
     transTopImg.name = 'transTopImg';
@@ -306,7 +306,7 @@ var app = (function() {
   api.gameoverRun = function() {
     drawElements(elements);
     ctx.font = '48px VT323';
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#FFB54B';
     ctx.fillText('GAME OVER', 160 - (ctx.measureText('GAME OVER').width/2), 40);
     ctx.fillText('SCORE: ' + score, 160 - (ctx.measureText('SCORE: ' + score).width/2), 80);
     ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 120);
