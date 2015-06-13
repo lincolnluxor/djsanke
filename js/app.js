@@ -167,7 +167,7 @@ var app = (function() {
       ctx.font = '22px VT323';
       ctx.fillText(score,320-ctx.measureText(score).width-10,40);
     } else {
-      CURR_STATE = GAME_STATES[0];
+      CURR_STATE = GAME_STATES[4];
     }
   };
 
@@ -214,9 +214,26 @@ var app = (function() {
 
   //game over loser! muahaha
   api.gameoverLoad = function() {
+    var gameOverImg = new Image();
+    gameOverImg.ready = false;
+    gameOverImg.onload = setAssetReady;
+    gameOverImg.src = 'imgs/splash2.jpg';
+    gameOverImg.left = 0;
+    gameOverImg.top = 0;
+    gameOverImg.name = 'gameOverImg';
+    gameOverImg.action = function(){
+      CURR_STATE = GAME_STATES[0];
+    };
+    elements.push(gameOverImg);
   };
 
   api.gameoverRun = function() {
+    drawElements(elements);
+    ctx.font = '48px VT323';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('GAME OVER', 160 - (ctx.measureText('GAME OVER').width/2), 40);
+    ctx.fillText('SCORE', 160 - (ctx.measureText('SCORE').width/2), 100);
+    ctx.fillText(score, 160 - (ctx.measureText(score).width/2), 180);
   };
 
   //for testing
