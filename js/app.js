@@ -9,8 +9,15 @@ var app = (function() {
   var canvasLeft = canvas.offsetLeft;
   var canvasTop = canvas.offsetTop;
   var elements = [];
-  var GAME_STATES = ['splash','game','leaderboard','levelup','gameover'];
+  var GAME_STATES = [
+    'splash',
+    'game',
+    'leaderboard',
+    'levelup',
+    'gameover',
+    'transition'];
   var CURR_STATE = GAME_STATES[0];
+  var NEW_STATE;
   var LAST_STATE;
   var currTime;
   var lastTime;
@@ -20,7 +27,9 @@ var app = (function() {
   var score;
   var now, dt,
       last = timestamp();
-  var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '600px', right: '5px' }); //for devel. shows FPS on screen.
+  var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '340px', right: '5px' }); //for devel. shows FPS on screen.
+  var transPos = 0;
+  var lastCanvas;
 
   //Click listener
   canvas.addEventListener('click',function(e) {
@@ -136,7 +145,9 @@ var app = (function() {
 
       //Check to see if requirements are met to move to next level
       if (actions > 10) {
-        CURR_STATE = GAME_STATES[3];
+        lastCanvas = ctx.getImageData(0,0,320,480);
+        NEW_STATE = GAME_STATES[3];
+        CURR_STATE = GAME_STATES[5];
       }
     }
     elements.push(hudImg);
@@ -206,17 +217,41 @@ var app = (function() {
     level += 1;
     actions = 0;
 
-    var levelUpImg = new Image();
-    levelUpImg.ready = false;
-    levelUpImg.onload = setAssetReady;
-    levelUpImg.src = 'imgs/splash2.jpg';
-    levelUpImg.left = 0;
-    levelUpImg.top = 0;
-    levelUpImg.name = 'gameOverImg';
-    levelUpImg.action = function(){
+//    var levelUpImg = new Image();
+//    levelUpImg.ready = false;
+//    levelUpImg.onload = setAssetReady;
+//    levelUpImg.src = 'imgs/splash2.jpg';
+//    levelUpImg.left = 0;
+//    levelUpImg.top = 0;
+//    levelUpImg.name = 'gameOverImg';
+//    levelUpImg.action = function(){
+//      CURR_STATE = GAME_STATES[1];
+//    };
+//    elements.push(levelUpImg);
+    
+    var transTopImg = new Image();
+    transTopImg.ready = false;
+    transTopImg.onload = setAssetReady;
+    transTopImg.src = 'imgs/transition.png';
+    transTopImg.left = 0;
+    transTopImg.top = 0;
+    transTopImg.name = 'transTopImg';
+    transTopImg.action = function() {
       CURR_STATE = GAME_STATES[1];
     };
-    elements.push(levelUpImg);
+    elements.push(transTopImg);
+
+    var transBottomImg = new Image();
+    transBottomImg.ready = false;
+    transBottomImg.onload = setAssetReady;
+    transBottomImg.src = 'imgs/transition.png';
+    transBottomImg.left = 0;
+    transBottomImg.top = 240;
+    transBottomImg.name = 'transBottomImg';
+    transBottomImg.action = function() {
+      CURR_STATE = GAME_STATES[1];
+    };
+    elements.push(transBottomImg);
   };
 
   //reset the board
@@ -231,17 +266,41 @@ var app = (function() {
 
   //game over loser! muahaha
   api.gameoverLoad = function() {
-    var gameOverImg = new Image();
-    gameOverImg.ready = false;
-    gameOverImg.onload = setAssetReady;
-    gameOverImg.src = 'imgs/splash2.jpg';
-    gameOverImg.left = 0;
-    gameOverImg.top = 0;
-    gameOverImg.name = 'gameOverImg';
-    gameOverImg.action = function(){
+//    var gameOverImg = new Image();
+//    gameOverImg.ready = false;
+//    gameOverImg.onload = setAssetReady;
+//    gameOverImg.src = 'imgs/splash2.jpg';
+//    gameOverImg.left = 0;
+//    gameOverImg.top = 0;
+//    gameOverImg.name = 'gameOverImg';
+//    gameOverImg.action = function(){
+//      CURR_STATE = GAME_STATES[0];
+//    };
+//    elements.push(gameOverImg);
+
+    var transTopImg = new Image();
+    transTopImg.ready = false;
+    transTopImg.onload = setAssetReady;
+    transTopImg.src = 'imgs/transition.png';
+    transTopImg.left = 0;
+    transTopImg.top = 0;
+    transTopImg.name = 'transTopImg';
+    transTopImg.action = function() {
       CURR_STATE = GAME_STATES[0];
     };
-    elements.push(gameOverImg);
+    elements.push(transTopImg);
+
+    var transBottomImg = new Image();
+    transBottomImg.ready = false;
+    transBottomImg.onload = setAssetReady;
+    transBottomImg.src = 'imgs/transition.png';
+    transBottomImg.left = 0;
+    transBottomImg.top = 240;
+    transBottomImg.name = 'transBottomImg';
+    transBottomImg.action = function() {
+      CURR_STATE = GAME_STATES[0];
+    };
+    elements.push(transBottomImg);
   };
 
   api.gameoverRun = function() {
@@ -252,6 +311,56 @@ var app = (function() {
     ctx.fillText('SCORE', 160 - (ctx.measureText('SCORE').width/2), 100);
     ctx.fillText(score, 160 - (ctx.measureText(score).width/2), 180);
     ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 280);
+  };
+
+  api.transitionLoad = function() {
+    transPos = 0;
+    
+//    var lastCanvasImg = new Image();
+//    lastCanvasImg.ready = false;
+//    lastCanvasImg.onload = setAssetReady;
+//    lastCanvasImg.src = lastCanvas;
+//    lastCanvasImg.left = 0;
+//    lastCanvasImg.top = 0;
+//    lastCanvasImg.name = 'lastCanvasImg';
+//    elements.push(lastCanvasImg);
+
+    var transTopImg = new Image();
+    transTopImg.ready = false;
+    transTopImg.onload = setAssetReady;
+    transTopImg.src = 'imgs/transition.png';
+    transTopImg.left = 0;
+    transTopImg.top = -240 + transPos;
+    transTopImg.name = 'transTopImg';
+    transTopImg.action = function() {
+      CURR_STATE = NEW_STATE;
+    };
+    elements.push(transTopImg);
+
+    var transBottomImg = new Image();
+    transBottomImg.ready = false;
+    transBottomImg.onload = setAssetReady;
+    transBottomImg.src = 'imgs/transition.png';
+    transBottomImg.left = 0;
+    transBottomImg.top = 480 - transPos;
+    transBottomImg.name = 'transBottomImg';
+    transBottomImg.action = function() {
+      CURR_STATE = NEW_STATE;
+    };
+    elements.push(transBottomImg);
+
+  };
+
+  api.transitionRun = function() {
+    ctx.putImageData(lastCanvas,0,0);
+    drawElements(elements);
+    if (transPos < 240) {
+      transPos += 10;
+    } else {
+      CURR_STATE = NEW_STATE;
+    }
+    api.updateElement('transTopImg','top',-240 + transPos);
+    api.updateElement('transBottomImg','top',480 - transPos);
   };
 
   //for testing
