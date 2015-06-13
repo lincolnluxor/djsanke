@@ -1,130 +1,158 @@
 
-var widgetsController = function() {
+var widgetsController = function(sizeW, sizeV, type, options) {
 
   var controller = {
-    // type can be "record", "dial", "slider", or "button"
-    createWidget: function(sizeX, sizeY, type) {
-      var controllerName = type.toString() + 'Controller';
-      if (typeof type !== 'undefined' && controllerName in window) { return window[controllerName](sizeX, sizeY); } // Call dynamic-named function.
+    init: function(sizeW, sizeV, type, options) {
+
+    },
+
+    // type can be "record", "dial", "slider", "button", "switch", or "toggle"
+    createWidget: function(sizeW, sizeV, type, options) {
+      var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type.toString() + 'Controller';
+      if (typeof type !== 'undefined' && controllerName in window) { return window[controllerName](sizeW, sizeV, type, options); } // Call dynamic-named function.
     }
   };
 
-  controller.init();
+  controller.init(sizeW, sizeV, type, options);
   return controller;
 };
 
-var recordController = function(sizeX, sizeY) {
-  var image: false,
-  var size: {x: 0, y: 0},
-
-  var value: false, // record player is off
-  var images: {'on': '', 'off': ''},
-
+var recordController = function(sizeW, sizeV, type, options) {
   var controller = {
-    init: function(sizeX, sizeY) {
+    size: {width: 0, height: 0},
+    centerX: 0,
+    centerY: 0,
+    radius: 0,
+
+    value: false, // record player is off
+    images: {'on': '', 'off': ''},
+
+    init: function(sizeW, sizeV, type, options) {
       var self = this;
 
-      self.size.x = sizeX;
-      self.size.y = sizeY;
+      self.size.width = sizeW;
+      self.size.height = sizeV;
+
+      self.centerX = self.size.width/2;
+      self.centerY = self.size.height/2;
+      self.radius = self.size.width/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
     },
 
-    updateValue: function(relCusrsorX, relCusrsorY) {
+    updateValue: function(relCursorX, relCursorY) {
       var self = this;
 
       // Check if user is within clickable limits.
-      if (!clickedWithinLimits(relCusrsorX, relCusrsorY)) { return false; } // User outside of clickable limits
+      if (!self.clickedWithinLimits(relCursorX, relCursorY)) { return false; } // User outside of clickable limits
 
       // User is within clickable limits, flip value and return new image.
       self.value = !self.value;
       return self.getImage();
     },
 
-    clickedWithinLimits: function(relCusrsorX, relCusrsorY) {
+    clickedWithinLimits: function(relCursorX, relCursorY) {
       var self = this;
-
-      var centerX = self.size.x/2;
-      var centerY = self.size.y/2;
-      var radius = self.size.x/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
-
-      return ( Math.pow((relCusrsorX - centerX), 2) + Math.pow((relCusrsorY - centerY), 2) < Math.pow(radius, 2) );
+      return ( Math.pow((relCursorX - self.centerX), 2) + Math.pow((relCursorY - self.centerY), 2) < Math.pow(self.radius, 2) );
     },
 
     getImage: function() {
+      var self = this;
+
       var img = new Image();
       img.src = (self.value === true) ? self.images.on : self.images.off;
       return img;
     }
   };
 
-  controller.init();
+  controller.init(sizeW, sizeV, type, options);
   return controller;
 };
 
-var dialController = function(sizeX, sizeY) {
-  var size: {x: 0, y: 0},
-
-  // Used to determine the angle in which the dial is rotated.
-  var maxDialValue: 10,
-  var anglePerValue: (360 / this.maxDialValue),
-  var centerX: 0,
-  var centerY: 0,
-  var radius: 0,
-  var startDist: false, // Dist from center to point clicked.
-  var enableUpdates: false,
-
-  var value: 0, // The number the dial is set to.
-  var images = [
-    '',
-    '',
-    '',
-    '',
-    '',
-    ''
-  ],
-
+var dialController = function(sizeW, sizeV, type, options) {
   var controller = {
-    init: function(sizeX, sizeY) {
+    size: {width: 0, height: 0},
+
+    // Used to determine the angle in which the dial is rotated.
+    maxDialValue: 10,
+    anglePerValue: 0,
+    centerX: 0,
+    centerY: 0,
+    radius: 0,
+    startDist: false, // Dist from center to point clicked.
+    enableUpdates: false,
+
+    value: 0, // The number the dial is set to.
+    images: [
+      'zero',
+      'one',
+      'two',
+      'three',
+      'four',
+      'five'
+    ],
+
+    init: function(sizeW, sizeV, type, options) {
       var self = this;
 
-      self.size.x = sizeX;
-      self.size.y = sizeY;
-      self.centerX = self.size.x/2;
-      self.centerY = self.size.y/2;
-      self.radius = self.size.x/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
+      self.size.width = sizeW;
+      self.size.height = sizeV;
+      self.centerX = self.size.width/2;
+      self.centerY = self.size.height/2;
+      self.radius = self.size.width/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
+      self.anglePerValue = (360 / self.maxDialValue);
     },
 
-    updateValue: function(relCusrsorX, relCusrsorY) {
-      if ((typeof relCusrsorX === 'undefined' || typeof relCusrsorY === 'undefined') || (!sel.enableUpdates && !clickedWithinLimits(relCusrsorX, relCusrsorY))) {
+    updateValue: function(active, relCursorX, relCursorY) {
+      var self = this;
+
+      // Mouseup detected and we want to turn off this widget.
+      if (!active) {
         // Disable changing this value
-        self.startX = 0,
-        self.startY = 0,
+        self.startX = 0;
+        self.startY = 0;
         self.startDist = false;
+        self.enableUpdates = false;
+        console.log('disable update');
         return false;
       }
-      else if (self.startDist === false) {
-        self.startX = relCusrsorX,
-        self.startY = relCusrsorY,
-        self.startDist = getDist(self.centerX, self.centerY, relCusrsorX, relCusrsorY);
+      // This widget is enabled OR widget not yet enabled but is within clickable limits
+      else if (self.enableUpdates || (!self.enableUpdates && self.clickedWithinLimits(relCursorX, relCursorY))) {
+        self.enableUpdates = true;
+        if (self.startDist === false) {
+          self.startX = relCursorX;
+          self.startY = relCursorY;
+
+          self.startDist = self.getDist(self.centerX, self.centerY, relCursorX, relCursorY);
+          // If user clicks exactly on center, the getAngle method shits the bed.
+          self.startDist = (self.startDist === 0) ? self.size.width/2 : self.startDist;
+
+          console.log('initial enable update');
+          return false; // we dont calc new image this iteration.
+        }
+
+        console.log('enable update');
+
+        // Calculation based on triangle shown here with angles A, B, C and side a, b, c.
+        // @see http://www.sparknotes.com/testprep/books/sat2/math2c/chapter9section9.rhtml
+        var b = self.startDist;
+        var a = self.getDist(self.startX, self.startY, relCursorX, relCursorY);
+        var c = self.getDist(self.centerX, self.centerY, relCursorX, relCursorY);
+        var angle = self.getAngle(c, b, a);
+
+        // Figure out if it rounds up to next or down to prev value.
+        var remainder = angle % self.anglePerValue;
+        self.value = (remainder > (self.anglePerValue/2) ? Math.ceil(angle/self.anglePerValue) : Math.floor(angle/self.anglePerValue));
       }
-
-      // Calculation based on triangle shown here with angles A, B, C and side a, b, c.
-      // @see http://www.sparknotes.com/testprep/books/sat2/math2c/chapter9section9.rhtml
-      var b = self.startDist;
-      var a = getDist(self.startX, self.startY, relCusrsorX, relCusrsorY);
-      var c = Math.sqrt(Math.pow(b, 2) + Math.pow(a, 2));
-      var angle = getAngle(b, a, c);
-
-      // Figure out if it rounds up to next or down to prev value.
-      var remainder = angle % anglePerValue;
-      self.value = (remainder > (anglePerValue/2) ? Math.ceil(angle/anglePerValue) : Math.floor(angle/anglePerValue));
       return self.getImage();
     },
 
-    clickedWithinLimits: function(relCusrsorX, relCusrsorY) {
-      return ( Math.pow((relCusrsorX - self.centerX), 2) + Math.pow((relCusrsorY - self.centerY), 2) < Math.pow(radius, 2) );
+    clickedWithinLimits: function(relCursorX, relCursorY) {
+      var self = this;
+      return ( Math.pow((relCursorX - self.centerX), 2) + Math.pow((relCursorY - self.centerY), 2) < Math.pow(self.radius, 2) );
     },
 
     getImage: function() {
+      var self = this;
+
       var img = new Image();
       img.src = (self.value in self.images) ? self.images[self.value] : '';
       return img;
@@ -141,88 +169,158 @@ var dialController = function(sizeX, sizeY) {
     }
   };
 
-  controller.init();
+  controller.init(sizeW, sizeV, type, options);
   return controller;
 };
 
-var sliderController = function(sizeX, sizeY) {
-  var size: {x: 0, y: 0},
-  var startY: false,
-
-  var maxSliderValue: 10,
-  var distPerValue: (100 / this.maxDialValue),
-
-  var value: 0, // The number the slider is set to.
-  var images = [
-    '',
-    '',
-    '',
-    '',
-    '',
-    ''
-  ],
-
+var sliderController = function(sizeW, sizeV, type, options) {
   var controller = {
-    init: function(sizeX, sizeY) {
+    size: {width: 0, height: 0},
+    start: false,
+    enableUpdates: false,
+    breakRanges: [],
+
+    maxSliderValue: 3, // 0 - 3
+    distPerValue: 0,
+
+    value: 0, // The number the slider is set to.
+    bckgndImg: 'imgs/FaderNotches_Vert.png',
+    knobImg: 'imgs/Fader.png',
+    knobRotation: 0,
+
+    init: function(sizeW, sizeV, type, options) {
       var self = this;
 
-      self.size.x = sizeX;
-      self.size.y = sizeY;
-    },
+      self.size.width = sizeW;
+      self.size.height = sizeV;
+      self.distPerValue = (100 / self.maxSliderValue);
+      self.options = options;
 
-    updateValue: function(relCusrsorX, relCusrsorY) {
-      if ((typeof relCusrsorX === 'undefined' || typeof relCusrsorY === 'undefined') || (!sel.enableUpdates && !clickedWithinLimits(relCusrsorX, relCusrsorY))) {
-        self.startY = false;
-        return false;
+      if ('orientation' in options && options.orientation === 'horizontal') {
+        self.bckgndImg = 'imgs/FaderNotches_Hor.png';
+        self.knobRotation = 90;
       }
 
-      if (self.startY === false) { self.startY = relCusrsorY; }
+      // Create a set of ranges in which we determine whare the slider moves to; ex position 0 or 1 or 2 or 3...
+      var sizeVal = (self.options.orientation === 'horizontal') ? self.size.width : self.size.height;
+      var divisionSize = sizeVal / self.maxSliderValue;
+      for (var i = 0; i <= self.maxSliderValue; i++) {
+        var unitDiv = (divisionSize * i);
+        var lowLimit = Math.ceil(unitDiv - (divisionSize/2));
+        var upperLimit = Math.floor(unitDiv + (divisionSize/2));
 
+        self.breakRanges.push([lowLimit, upperLimit]);
+      }
+      // B/c (only in vertical orientation) higher pixels means the lower value
+      if (self.options.orientation === 'vertical') { self.breakRanges.reverse(); }
     },
 
-    clickedWithinLimits: function(relCusrsorX, relCusrsorY) {
+    updateValue: function(active, relCursorX, relCursorY) {
+      var self = this;
+
+      if (!active) {
+        self.start = false;
+        self.enableUpdates = false;
+        return false;
+      }
+      // This widget is enabled OR widget not yet enabled but is within clickable limits
+      else if (self.enableUpdates || (!self.enableUpdates && self.clickedWithinLimits(relCursorX, relCursorY))) {
+        self.enableUpdates = true;
+
+        var relCursor = (self.options.orientation === 'horizontal') ? relCursorX : relCursorY;
+        if (self.start === false) { self.start = relCursor; }
+
+        // Figure out if it rounds up to next or down to prev value.
+        var getNewPosition = function(self, coord) {
+          for (var i = 0; i < self.breakRanges.length; i++) {
+            if (coord >= Math.min.apply(Math, self.breakRanges[i]) && coord <= Math.max.apply(Math, self.breakRanges[i])) {
+              // found range in which coord exists.
+              return i;
+            }
+          }
+          console.log('Error detecting the new position of this slider.');
+        };
+
+        self.value = getNewPosition(self, relCursor);
+        return self.getImage();
+      }
+    },
+
+    getImage: function() {
+      var self = this;
+
+      // Background image
+      var bgImg = new Image();
+      bgImg.src = self.bckgndImg;
+
+      // Slider image
+      var knobImg = new Image();
+      knobImg.src = self.knobImg;
+      knobImg.setAttribute('rotation', self.knobRotation);
+      knobImg.setAttribute('position', self.value);
+
+      return [bgImg, knobImg];
+    },
+
+    clickedWithinLimits: function(relCursorX, relCursorY) {
+      // Based off size W & H
       return true;
     },
   };
 
-  controller.init();
+  controller.init(sizeW, sizeV, type, options);
   return controller;
 };
 
-var buttonController = function(sizeX, sizeY) {
-  var size: {x: 0, y: 0},
-  var maxDims: {x: 50, y: 100},
-  var images: {'on': '', 'off': ''},
-  var value: false,
-
+var buttonController = function(sizeW, sizeV, type, options) {
   var controller = {
-    init: function(sizeX, sizeY) {
+    size: {width: 0, height: 0},
+    // maxDims: {x: 0, y: 0},
+    images: {on: '', off: ''},
+    value: false,
+
+    init: function(sizeW, sizeV, type, options) {
       var self = this;
 
-      self.size.x = sizeX;
-      self.size.y = sizeY;
+      self.size.width = sizeW;
+      self.size.height = sizeV;
+
+
+      if (type === "switch") {
+        self.images.on = 'imgs/Switch_Up.png';
+        self.images.off = 'imgs/Switch_Down.png';
+      }
+      else if (type === "toggle") {
+        self.images.on = 'imgs/Toggle_Left.png';
+        self.images.off = 'imgs/Toggle_Right.png';
+      }
+      else {
+        // Need button graphics
+      }
     },
 
-    updateValue: function(relCusrsorX, relCusrsorY) {
+    updateValue: function(relCursorX, relCursorY) {
       var self = this;
-      if (!clickedWithinLimits(relCusrsorX, relCusrsorY)) { return false; }
+      if (!self.clickedWithinLimits(relCursorX, relCursorY)) { return false; }
 
       self.value = !self.value;
       return self.getImage();
     },
 
-    clickedWithinLimits: function(relCusrsorX, relCusrsorY) {
+    clickedWithinLimits: function(relCursorX, relCursorY) {
       var self = this;
-      return ((relCusrsorX >= 0 && relCusrsorX <= self.maxDims.x) && (relCusrsorY >= 0 && relCusrsorY <= self.maxDims.y));
+      return ((relCursorX >= 0 && relCursorX <= self.size.width) && (relCursorY >= 0 && relCursorY <= self.size.height));
     },
 
     getImage: function() {
+      var self = this;
+
       var img = new Image();
       img.src = (self.value === true) ? self.images.on : self.images.off;
       return img;
     }
   };
 
-  controller.init();
+  controller.init(sizeW, sizeV, type, options);
   return controller;
 };
