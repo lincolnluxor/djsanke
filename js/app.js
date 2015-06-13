@@ -16,6 +16,7 @@ var app = (function() {
   var lastTime;
   var timer = [30,20,10,7];
   var level;
+  var actions = 0;
 
   canvas.addEventListener('click',function(e) {
     var clickX = e.pageX - canvasLeft;
@@ -119,6 +120,10 @@ var app = (function() {
     deckImg.action = function() {
       //check here to see if they clicked or moved correctly
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
+      actions += 1;
+      if (actions > 10) {
+        CURR_STATE = GAME_STATES[3];
+      }
     }
     elements.push(deckImg);
 
@@ -135,6 +140,7 @@ var app = (function() {
   };
 
   api.gameRun = function(time) {
+    console.log(actions +'-'+ level);
     currTime = parseInt(new Date().getTime()/getBarSpeed());
     api.updateElement('barImg','left',lastTime - currTime);
 
@@ -146,6 +152,7 @@ var app = (function() {
     }
   };
 
+  //used to update an object properties in the elements array
   api.updateElement = function(name, prop, value) {
     elements.forEach(function(element) {
       if (element.name === name) {
@@ -153,15 +160,8 @@ var app = (function() {
       }
     });
   };
-  
-  api.levelupLoad = function() {
-    level += 1;
-  };
-  
-  api.levelupRun = function() {
-    CURR_STATE = GAME_STATES[1];
-  };
-  
+
+  //how fast the timer runs... don't ask me to give you a seconds
   function getBarSpeed() {
     if (level > 3) {
       barSpeed = timer[3];
@@ -170,6 +170,17 @@ var app = (function() {
     }
     return barSpeed;
   }
+
+  //need to reset the board, so levelup is required
+  api.levelupLoad = function() {
+    level += 1;
+    actions = 0;
+  };
+
+  //reset the board
+  api.levelupRun = function() {
+    CURR_STATE = GAME_STATES[1];
+  };
 
   //for testing
   api.getElements = function() {
@@ -180,7 +191,3 @@ var app = (function() {
 
   return api;
 })();
-
-//Grid 106
-
-//Panel 320
