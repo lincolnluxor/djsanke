@@ -205,11 +205,28 @@ var app = (function() {
   api.levelupLoad = function() {
     level += 1;
     actions = 0;
+
+    var levelUpImg = new Image();
+    levelUpImg.ready = false;
+    levelUpImg.onload = setAssetReady;
+    levelUpImg.src = 'imgs/splash2.jpg';
+    levelUpImg.left = 0;
+    levelUpImg.top = 0;
+    levelUpImg.name = 'gameOverImg';
+    levelUpImg.action = function(){
+      CURR_STATE = GAME_STATES[1];
+    };
+    elements.push(levelUpImg);
   };
 
   //reset the board
   api.levelupRun = function() {
-    CURR_STATE = GAME_STATES[1];
+    drawElements(elements);
+    ctx.font = '44px VT323';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('LEVEL ' + level + ' COMPLETE', 160 - (ctx.measureText('LEVEL ' + level + ' COMPLETE').width/2), 40);
+    
+    ctx.fillText('CLICK TO PROCEED', 160 - (ctx.measureText('CLICK TO PROCEED').width/2), 80);
   };
 
   //game over loser! muahaha
@@ -234,6 +251,7 @@ var app = (function() {
     ctx.fillText('GAME OVER', 160 - (ctx.measureText('GAME OVER').width/2), 40);
     ctx.fillText('SCORE', 160 - (ctx.measureText('SCORE').width/2), 100);
     ctx.fillText(score, 160 - (ctx.measureText(score).width/2), 180);
+    ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 280);
   };
 
   //for testing
