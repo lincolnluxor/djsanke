@@ -29,7 +29,7 @@ var app = (function() {
 //    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
     elements.forEach(function(element) {
       if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
-        if (element.action) {element.action()};
+        if (element.action) { element.action(); }
 //        console.log('clicked: ' + element.name); for devel. shows element(s) that was clicked
       }
     });
@@ -38,7 +38,7 @@ var app = (function() {
   //timing
   function timestamp() {
     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
-  };
+  }
 
   //game loop
   function frame(running) {
@@ -56,14 +56,33 @@ var app = (function() {
   //check to see if images are loaded
   function setAssetReady() {
     this.ready = true;
-  };
+  }
 
   //loop through elements array and paint to ctx
   function drawElements(elements) {
     elements.forEach(function(element) {
-      ctx.drawImage(element, element.left, element.top);
+      var thisImg = element;
+      // if ('type' in element && element.type === 'widgetController') {
+      //   thisImg = element.getImage();
+      // }
+
+      // if ('rotation' in thisImg) {
+      //   // left = 0;
+      //   // top = 0;
+      //   ctx.translate(element.left, element.top);
+      //   ctx.rotate(element.getRadians(thisImg.rotation));
+      //   ctx.drawImage(thisImg, 0, 0);
+      //   ctx.translate(-1 * element.left, -1 * element.top);
+      // }
+
+      // // if (thisImg instanceof Array) {
+      // //   thisImg.map(function(img) { ctx.drawImage(img, img.left, img.top); })
+      // // }
+      // else {
+        ctx.drawImage(thisImg, element.left, element.top);
+      // }
     });
-  };
+  }
 
   //update state of the game
   function update(dt) {
@@ -76,7 +95,7 @@ var app = (function() {
     }
     var run = CURR_STATE + 'Run';
     api[run](dt,elements);
-  };
+  }
 
   //Home screen before run
   api.splashLoad = function() {
@@ -92,7 +111,7 @@ var app = (function() {
     splashImg.name = 'splashImg';
     splashImg.action = function() {
       CURR_STATE = GAME_STATES[1];
-    }
+    };
     elements.push(splashImg);
 
     return elements;
@@ -104,6 +123,7 @@ var app = (function() {
   };
 
   //Game loading
+  // var widgets = [];
   api.gameLoad = function() {
     var headerImg = new Image();
     headerImg.ready = false;
@@ -114,16 +134,15 @@ var app = (function() {
     headerImg.name = 'headerImg';
     elements.push(headerImg);
 
+
+    
+
     //for devel. this will be replaced with all of the individual components
-    var hudImg = new Image();
-    hudImg.ready = false;
-    hudImg.onload = setAssetReady;
-    hudImg.src = 'imgs/HUD.png';
-    hudImg.left = 0;
-    hudImg.top = 152;
-    hudImg.name = 'hudImg';
-    hudImg.action = function() {
+    var widgets = ["dial"]; //"record", , "slider", "button", "switch", "toggle"]
+    wc = widgetsController();
+    var widgetAction = function() {
       //check here to see if they clicked or moved correctly
+      if (this.controller.updateValue() === false) { return; }
 
       //update timer
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
@@ -138,8 +157,54 @@ var app = (function() {
       if (actions > 10) {
         CURR_STATE = GAME_STATES[3];
       }
+    };
+    for (var i = 0; i < widgets.length; i++) {
+
+      // var widgetImg = widget.getImage(); //setWidgetProps(, { name: widgets[i].type + i, top: 0, left: 150 })
+      
+      var options = {};
+      options.name = widgets[i] + i;
+      options.ready = false;
+      options.onload = setAssetReady;
+      options.left = 0;
+      options.top = 140;
+      options.action = widgetAction;
+
+      var widget = wc.createWidget(100, 100, widgets[i], options);
+      elements.push(widget);
+
+      // }
     }
-    elements.push(hudImg);
+
+    // var hudImg = new Image();
+    // hudImg.ready = false;
+    // hudImg.onload = setAssetReady;
+    // hudImg.src = 'imgs/HUD.png';
+    // hudImg.left = 0;
+    // hudImg.top = 152;
+    // hudImg.name = 'hudImg';
+    // hudImg.action = function() {
+    //   //check here to see if they clicked or moved correctly
+    //   if (Math.round(Math.random()) === 0) { return false; }
+
+    //   //update timer
+    //   lastTime = parseInt(new Date().getTime()/getBarSpeed());
+
+    //   //Increment actions
+    //   actions += 1;
+
+    //   //Update score
+    //   score = score + (320 + api.findElementProp('timeBarImg','left') + (level * 4));
+
+    //   //Check to see if requirements are met to move to next level
+    //   if (actions > 10) {
+    //     CURR_STATE = GAME_STATES[3];
+    //   }
+    // };
+    // elements.push(hudImg);
+
+
+
 
     var timeBarImg = new Image();
     timeBarImg.ready = false;
@@ -157,6 +222,9 @@ var app = (function() {
   api.gameRun = function(time) {
     currTime = parseInt(new Date().getTime()/getBarSpeed());
     api.updateElement('timeBarImg','left',lastTime - currTime);
+
+    // Update our widgets
+    
 
     //Check to see if they ran out of time
     if (lastTime - currTime > -320) {
