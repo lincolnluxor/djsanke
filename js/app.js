@@ -117,6 +117,8 @@ var app = (function() {
     deckImg.top = 152;
     deckImg.name = 'deckImg';
     deckImg.action = function() {
+      //check here to see if they clicked or moved correctly
+      lastTime = parseInt(new Date().getTime()/getBarSpeed());
     }
     elements.push(deckImg);
 
@@ -161,7 +163,6 @@ var app = (function() {
   };
   
   function getBarSpeed() {
-    console.log(level);
     if (level > 3) {
       barSpeed = timer[3];
     } else {
