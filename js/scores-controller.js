@@ -3,14 +3,24 @@ var scoresController = function() {
     scores: [],
     maxStatsCount: 20,
 
+    init: function() {
+      var self = this;
+      self.getStats();
+    },
+
     getStats: function() {
       var self = this;
-      // Ajax to read system variable
+      // @todo: Make Ajax call to read stored scores from server
+
+      var cookieScores = JSON.parse(cookies.get('djsanke-scores'));
+      if (cookieScores instanceof Array) { self.scores = cookieScores; }
     },
 
     setStats: function() {
       var self = this;
-      // Ajax to write system variable
+      // @todo: Make Ajax call to write stored scores to server
+
+      cookies.set('djsanke-scores', JSON.stringify(self.scores), {expires: new Date(2025, 1, 1)});
     },
 
     addStat: function(initials, score) {
@@ -18,6 +28,7 @@ var scoresController = function() {
       // Add user initials and score to scores array
       self.scores.push({initials: initials, score: score});
       self.sortScoreboard();
+      self.setStats();
     },
 
     isScoreboardWorthy: function(score) {
