@@ -1,24 +1,29 @@
 
-var widgetsController = function(sizeW, sizeV, type, options) {
+var widgetsController = function() {
 
   var controller = {
-    init: function(sizeW, sizeV, type, options) {
+    init: function() {
 
     },
 
     // type can be "record", "dial", "slider", "button", "switch", or "toggle"
     createWidget: function(sizeW, sizeV, type, options) {
       var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type.toString() + 'Controller';
-      if (typeof type !== 'undefined' && controllerName in window) { return window[controllerName](sizeW, sizeV, type, options); } // Call dynamic-named function.
+      if (typeof type !== 'undefined' && controllerName in window) {
+        var controller = window[controllerName](sizeW, sizeV, type, options); // Call dynamic-named function.
+        controller.type = 'widgetController';
+        return controller;
+      }
     }
   };
 
-  controller.init(sizeW, sizeV, type, options);
+  controller.init();
   return controller;
 };
 
 var recordController = function(sizeW, sizeV, type, options) {
-  var controller = {
+  var widget = new Image();
+  widget.controller = {
     size: {width: 0, height: 0},
     centerX: 0,
     centerY: 0,
@@ -63,17 +68,18 @@ var recordController = function(sizeW, sizeV, type, options) {
     }
   };
 
-  controller.init(sizeW, sizeV, type, options);
-  return controller;
+  widget.controller.init(sizeW, sizeV, type, options);
+  return widget;
 };
 
 var dialController = function(sizeW, sizeV, type, options) {
+  // var widget = new Image();
   var controller = {
     size: {width: 0, height: 0},
 
     // Used to determine the angle in which the dial is rotated.
-    maxDialValue: 10,
-    anglePerValue: 0,
+    maxDialValue: 4,
+    anglePerValue: 60,
     centerX: 0,
     centerY: 0,
     radius: 0,
@@ -81,14 +87,10 @@ var dialController = function(sizeW, sizeV, type, options) {
     enableUpdates: false,
 
     value: 0, // The number the dial is set to.
-    images: [
-      'zero',
-      'one',
-      'two',
-      'three',
-      'four',
-      'five'
-    ],
+    image: 'imgs/Dial.png',
+    dialRotation: -120,
+    prevImgObj: null,
+    options: {},
 
     init: function(sizeW, sizeV, type, options) {
       var self = this;
@@ -98,7 +100,9 @@ var dialController = function(sizeW, sizeV, type, options) {
       self.centerX = self.size.width/2;
       self.centerY = self.size.height/2;
       self.radius = self.size.width/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
-      self.anglePerValue = (360 / self.maxDialValue);
+      // self.anglePerValue = (360 / self.maxDialValue);
+
+      self.options = options;
     },
 
     updateValue: function(active, relCursorX, relCursorY) {
@@ -116,6 +120,7 @@ var dialController = function(sizeW, sizeV, type, options) {
       }
       // This widget is enabled OR widget not yet enabled but is within clickable limits
       else if (self.enableUpdates || (!self.enableUpdates && self.clickedWithinLimits(relCursorX, relCursorY))) {
+        
         self.enableUpdates = true;
         if (self.startDist === false) {
           self.startX = relCursorX;
@@ -141,8 +146,9 @@ var dialController = function(sizeW, sizeV, type, options) {
         // Figure out if it rounds up to next or down to prev value.
         var remainder = angle % self.anglePerValue;
         self.value = (remainder > (self.anglePerValue/2) ? Math.ceil(angle/self.anglePerValue) : Math.floor(angle/self.anglePerValue));
+        self.rotation = (self.value * 60) -120;
       }
-      return self.getImage();
+      return true;
     },
 
     clickedWithinLimits: function(relCursorX, relCursorY) {
@@ -154,7 +160,12 @@ var dialController = function(sizeW, sizeV, type, options) {
       var self = this;
 
       var img = new Image();
-      img.src = (self.value in self.images) ? self.images[self.value] : '';
+      img.src = self.image; //(self.value in self.images) ? self.images[self.value] : '';
+      img.rotation = self.rotation;
+      for (var key in self.options) {
+        img[key] = options[key];
+      }
+      self.prevImgObj = img;
       return img;
     },
 
@@ -162,6 +173,10 @@ var dialController = function(sizeW, sizeV, type, options) {
     getAngle: function(AB, BC, CA) {
       var cosX = (Math.pow(CA, 2) - Math.pow(AB, 2) - Math.pow(BC, 2)) / (-2 * AB * BC);
       return (Math.acos(cosX) * (180 / Math.PI)); // Math.acos(cosX) is in radians, so we convert to degrees and return that value.
+    },
+
+    getRadians: function(angleInDegrees) {
+      return angleInDegrees / (180 / Math.PI);
     },
 
     getDist: function(x1, y1, x2, y2) {
@@ -174,7 +189,8 @@ var dialController = function(sizeW, sizeV, type, options) {
 };
 
 var sliderController = function(sizeW, sizeV, type, options) {
-  var controller = {
+  var widget = new Image();
+  widget.controller = {
     size: {width: 0, height: 0},
     start: false,
     enableUpdates: false,
@@ -268,12 +284,13 @@ var sliderController = function(sizeW, sizeV, type, options) {
     },
   };
 
-  controller.init(sizeW, sizeV, type, options);
-  return controller;
+  widget.controller.init(sizeW, sizeV, type, options);
+  return widget;
 };
 
 var buttonController = function(sizeW, sizeV, type, options) {
-  var controller = {
+  var widget = new Image();
+  widget.controller = {
     size: {width: 0, height: 0},
     // maxDims: {x: 0, y: 0},
     images: {on: '', off: ''},
@@ -321,6 +338,6 @@ var buttonController = function(sizeW, sizeV, type, options) {
     }
   };
 
-  controller.init(sizeW, sizeV, type, options);
-  return controller;
+  widget.controller.init(sizeW, sizeV, type, options);
+  return widget;
 };

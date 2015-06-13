@@ -31,15 +31,47 @@ var app = (function() {
   var transPos = 0;
   var lastCanvas;
 
+  var withinElementBounds = function(element, clickX, clickY) {
+    return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
+  };
+
+  var getCursorPosition = function(e) {
+    return {x: e.pageX - canvasLeft, y: e.pageY - canvasTop};
+  };
+
   //Click listener
-  canvas.addEventListener('click',function(e) {
-    var clickX = e.pageX - canvasLeft;
-    var clickY = e.pageY - canvasTop;
+  var mouseIsDown = false;
+  canvas.addEventListener('mouseup',function(e) {
+    mouseIsDown = false;
+
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
 //    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
     elements.forEach(function(element) {
-      if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
-        if (element.action) {element.action()};
-//        console.log('clicked: ' + element.name); for devel. shows element(s) that was clicked
+      if (withinElementBounds(element, clickX, clickY) === true && ('action' in element)) { element.action(false, clickX, clickY); }
+    });
+  });
+
+  canvas.addEventListener('mousedown',function(e) {
+    mouseIsDown = true;
+
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
+//    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
+    elements.forEach(function(element) {
+      if (withinElementBounds(element, clickX, clickY) === true && ('action' in element)) {
+        element.action(true, clickX, clickY);
+      }
+    });
+  });
+
+  canvas.addEventListener('mousemove',function(e) {
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
+
+    elements.forEach(function(element) {
+      if (mouseIsDown === true && ('action' in element)) {
+        element.action(true, clickX, clickY);
       }
     });
   });
@@ -47,7 +79,7 @@ var app = (function() {
   //timing
   function timestamp() {
     return window.performance && window.performance.now ? window.performance.now() : new Date().getTime();
-  };
+  }
 
   //game loop
   function frame(running) {
@@ -65,14 +97,34 @@ var app = (function() {
   //check to see if images are loaded
   function setAssetReady() {
     this.ready = true;
-  };
+  }
 
   //loop through elements array and paint to ctx
   function drawElements(elements) {
     elements.forEach(function(element) {
-      ctx.drawImage(element, element.left, element.top);
+      var thisImg = element;
+      if ('type' in element && element.type === 'widgetController') {
+        thisImg = element.getImage();
+      }
+
+      // if ('rotation' in thisImg) {
+      //   // left = 0;
+      //   // top = 0;
+      //   ctx.translate(element.left, element.top);
+      //   ctx.rotate(element.getRadians(thisImg.rotation));
+      //   ctx.drawImage(thisImg, 0, 0);
+      //   ctx.rotate((-1 * element.getRadians(thisImg.rotation)));
+      //   ctx.translate((-1 * element.left), (-1 * element.top));
+      // }
+
+      // // if (thisImg instanceof Array) {
+      // //   thisImg.map(function(img) { ctx.drawImage(img, img.left, img.top); })
+      // // }
+      // else {
+        ctx.drawImage(thisImg, element.left, element.top);
+      // }
     });
-  };
+  }
 
   //update state of the game
   function update(dt) {
@@ -85,7 +137,16 @@ var app = (function() {
     }
     var run = CURR_STATE + 'Run';
     api[run](dt,elements);
-  };
+  }
+
+  function getUpdatedElements(elements) {
+    for (var i = 0; i < elements.length; i++) {
+      if ('type' in elements[i] && elements[i].type === 'widgetController') {
+        elements[i] = elements[i].getImage();
+      }
+    }
+    return elements;
+  }
 
   //Home screen before run
   api.splashLoad = function() {
@@ -101,7 +162,7 @@ var app = (function() {
     splashImg.name = 'splashImg';
     splashImg.action = function() {
       CURR_STATE = GAME_STATES[1];
-    }
+    };
     elements.push(splashImg);
 
     return elements;
@@ -113,6 +174,16 @@ var app = (function() {
   };
 
   //Game loading
+  api.widgetsControllers = [];
+  api.getControllerIndex = function(id) {
+    for (var i = 0; i < api.widgetsControllers.length; i++) {
+      if (api.widgetsControllers[i].options.controllerID === id) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
   api.gameLoad = function() {
     var headerImg = new Image();
     headerImg.ready = false;
@@ -123,16 +194,16 @@ var app = (function() {
     headerImg.name = 'headerImg';
     elements.push(headerImg);
 
+
+
+
     //for devel. this will be replaced with all of the individual components
-    var hudImg = new Image();
-    hudImg.ready = false;
-    hudImg.onload = setAssetReady;
-    hudImg.src = 'imgs/HUD.png';
-    hudImg.left = 0;
-    hudImg.top = 152;
-    hudImg.name = 'hudImg';
-    hudImg.action = function() {
+    var widgets = ["dial"]; //"record", , "slider", "button", "switch", "toggle"]
+    wc = widgetsController();
+    var widgetAction = function(active, clickX, clickY) {
       //check here to see if they clicked or moved correctly
+      var index = api.getControllerIndex(this.controllerID);
+      if (index === -1 || api.widgetsControllers[index].updateValue(active, clickX, clickY) === false) { return; }
 
       //update timer
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
@@ -149,8 +220,56 @@ var app = (function() {
         NEW_STATE = GAME_STATES[3];
         CURR_STATE = GAME_STATES[5];
       }
+    };
+    for (var i = 0; i < widgets.length; i++) {
+
+      // var widgetImg = widget.getImage(); //setWidgetProps(, { name: widgets[i].type + i, top: 0, left: 150 })
+      
+      var options = {};
+      options.name = widgets[i] + i;
+      options.ready = false;
+      options.onload = setAssetReady;
+      options.left = 0;
+      options.top = 140;
+      options.action = widgetAction;
+      options.controllerID = new Date().getTime();
+
+      var widget = wc.createWidget(100, 100, widgets[i], options);
+      api.widgetsControllers.push(widget);
+      elements.push(widget.getImage());
+
+      // }
     }
-    elements.push(hudImg);
+
+    // var hudImg = new Image();
+    // hudImg.ready = false;
+    // hudImg.onload = setAssetReady;
+    // hudImg.src = 'imgs/HUD.png';
+    // hudImg.left = 0;
+    // hudImg.top = 152;
+    // hudImg.name = 'hudImg';
+    // hudImg.action = function() {
+    //   //check here to see if they clicked or moved correctly
+    //   if (Math.round(Math.random()) === 0) { return false; }
+
+    //   //update timer
+    //   lastTime = parseInt(new Date().getTime()/getBarSpeed());
+
+    //   //Increment actions
+    //   actions += 1;
+
+    //   //Update score
+    //   score = score + (320 + api.findElementProp('timeBarImg','left') + (level * 4));
+
+    //   //Check to see if requirements are met to move to next level
+    //   if (actions > 10) {
+    //     CURR_STATE = GAME_STATES[3];
+    //   }
+    // };
+    // elements.push(hudImg);
+
+
+
 
     var timeBarImg = new Image();
     timeBarImg.ready = false;
@@ -168,6 +287,9 @@ var app = (function() {
   api.gameRun = function(time) {
     currTime = parseInt(new Date().getTime()/getBarSpeed());
     api.updateElement('timeBarImg','left',lastTime - currTime);
+
+    // Update our widgets
+    elements = getUpdatedElements(elements);
 
     //Check to see if they ran out of time
     if (lastTime - currTime > -320) {
@@ -281,7 +403,7 @@ var app = (function() {
     var transTopImg = new Image();
     transTopImg.ready = false;
     transTopImg.onload = setAssetReady;
-    transTopImg.src = 'imgs/transition.png';
+    transTopImg.src = 'imgs/BG_Gradient.png';
     transTopImg.left = 0;
     transTopImg.top = 0;
     transTopImg.name = 'transTopImg';
@@ -306,7 +428,7 @@ var app = (function() {
   api.gameoverRun = function() {
     drawElements(elements);
     ctx.font = '48px VT323';
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#FFB54B';
     ctx.fillText('GAME OVER', 160 - (ctx.measureText('GAME OVER').width/2), 40);
     ctx.fillText('SCORE: ' + score, 160 - (ctx.measureText('SCORE: ' + score).width/2), 80);
     ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 120);
