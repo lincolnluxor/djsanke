@@ -117,7 +117,7 @@ var app = (function() {
     var headerImg = new Image();
     headerImg.ready = false;
     headerImg.onload = setAssetReady;
-    headerImg.src = 'imgs/header.png';
+    headerImg.src = 'imgs/BG_Club.gif';
     headerImg.left = 0;
     headerImg.top = 0;
     headerImg.name = 'headerImg';
@@ -176,7 +176,7 @@ var app = (function() {
       ctx.fillStyle = '#fff';
       ctx.fillText(level+1, 10, 40);
       ctx.font = '22px VT323';
-      ctx.fillText(score,320-ctx.measureText(score).width-10,40);
+      ctx.fillText(score,320-ctx.measureText(score).width-10,16);
     } else {
       CURR_STATE = GAME_STATES[4];
     }
