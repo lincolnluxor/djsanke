@@ -9,22 +9,24 @@ var app = (function() {
   var canvasLeft = canvas.offsetLeft;
   var canvasTop = canvas.offsetTop;
   var elements = [];
-  var GAME_STATES = ['splash','game','leaderboard','levelup'];
+  var GAME_STATES = ['splash','game','leaderboard','levelup','gameover'];
   var CURR_STATE = GAME_STATES[0];
   var LAST_STATE;
   var currTime;
   var lastTime;
   var timer = [30,20,10,7];
   var level;
+  var actions = 0;
+  var score;
 
   canvas.addEventListener('click',function(e) {
     var clickX = e.pageX - canvasLeft;
     var clickY = e.pageY - canvasTop;
-    console.log('x: '+clickX+' y: '+clickY);
+//    console.log('x: '+clickX+' y: '+clickY);
     elements.forEach(function(element) {
       if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
         if (element.action) {element.action()};
-        console.log('clicked: ' + element.name);
+//        console.log('clicked: ' + element.name);
       }
     });
   });
@@ -74,6 +76,7 @@ var app = (function() {
   //Home screen
   api.splashLoad = function() {
     level = 0;
+    score = 0;
     var splashImg = new Image();
     splashImg.ready = false;
     splashImg.onload = setAssetReady;
@@ -119,6 +122,12 @@ var app = (function() {
     deckImg.action = function() {
       //check here to see if they clicked or moved correctly
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
+      actions += 1;
+//      var tl = ;
+      score = score + (320 + api.findElementProp('barImg','left') + (level * 4));
+      if (actions > 10) {
+        CURR_STATE = GAME_STATES[3];
+      }
     }
     elements.push(deckImg);
 
@@ -140,12 +149,17 @@ var app = (function() {
 
     if (lastTime - currTime > -320) {
       drawElements(elements);
+      ctx.font = '48px VT323';
+      ctx.fillStyle = '#fff';
+      ctx.fillText(level+1, 10, 40);
+      ctx.font = '22px VT323';
+      ctx.fillText(score,250,40);
     } else {
       CURR_STATE = GAME_STATES[0];
-//      CURR_STATE = GAME_STATES[3]; //for devel... levels up
     }
   };
 
+  //used to update an object properties in the elements array
   api.updateElement = function(name, prop, value) {
     elements.forEach(function(element) {
       if (element.name === name) {
@@ -154,14 +168,17 @@ var app = (function() {
     });
   };
   
-  api.levelupLoad = function() {
-    level += 1;
-  };
-  
-  api.levelupRun = function() {
-    CURR_STATE = GAME_STATES[1];
-  };
-  
+  api.findElementProp = function(name, prop) {
+    var elProp;
+    elements.forEach(function(element) {
+      if (element.name === name) {
+        elProp = element[prop];
+      }
+    });
+    return elProp;
+  }
+
+  //how fast the timer runs... don't ask me to give you a seconds
   function getBarSpeed() {
     if (level > 3) {
       barSpeed = timer[3];
@@ -170,6 +187,24 @@ var app = (function() {
     }
     return barSpeed;
   }
+
+  //need to reset the board, so levelup is required
+  api.levelupLoad = function() {
+    level += 1;
+    actions = 0;
+  };
+
+  //reset the board
+  api.levelupRun = function() {
+    CURR_STATE = GAME_STATES[1];
+  };
+
+  //game over loser! muahaha
+  api.gameoverLoad = function() {
+  };
+
+  api.gameoverRun = function() {
+  };
 
   //for testing
   api.getElements = function() {
@@ -180,7 +215,3 @@ var app = (function() {
 
   return api;
 })();
-
-//Grid 106
-
-//Panel 320
