@@ -31,15 +31,47 @@ var app = (function() {
   var transPos = 0;
   var lastCanvas;
 
+  var withinElementBounds = function(element, clickX, clickY) {
+    return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
+  };
+
+  var getCursorPosition = function(e) {
+    return {x: e.pageX - canvasLeft, y: e.pageY - canvasTop};
+  };
+
   //Click listener
-  canvas.addEventListener('click',function(e) {
-    var clickX = e.pageX - canvasLeft;
-    var clickY = e.pageY - canvasTop;
+  var mouseIsDown = false;
+  canvas.addEventListener('mouseup',function(e) {
+    mouseIsDown = false;
+
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
 //    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
     elements.forEach(function(element) {
-      if (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width) {
-        if (element.action) { element.action(); }
-//        console.log('clicked: ' + element.name); for devel. shows element(s) that was clicked
+      if (withinElementBounds(element, clickX, clickY) === true && ('action' in element)) { element.action(false, clickX, clickY); }
+    });
+  });
+
+  canvas.addEventListener('mousedown',function(e) {
+    mouseIsDown = true;
+
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
+//    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
+    elements.forEach(function(element) {
+      if (withinElementBounds(element, clickX, clickY) === true && ('action' in element)) {
+        element.action(true, clickX, clickY);
+      }
+    });
+  });
+
+  canvas.addEventListener('mousemove',function(e) {
+    var clickX = getCursorPosition(e).x;
+    var clickY = getCursorPosition(e).y;
+
+    elements.forEach(function(element) {
+      if (mouseIsDown === true && ('action' in element)) {
+        element.action(true, clickX, clickY);
       }
     });
   });
@@ -71,9 +103,9 @@ var app = (function() {
   function drawElements(elements) {
     elements.forEach(function(element) {
       var thisImg = element;
-      // if ('type' in element && element.type === 'widgetController') {
-      //   thisImg = element.getImage();
-      // }
+      if ('type' in element && element.type === 'widgetController') {
+        thisImg = element.getImage();
+      }
 
       // if ('rotation' in thisImg) {
       //   // left = 0;
@@ -81,7 +113,8 @@ var app = (function() {
       //   ctx.translate(element.left, element.top);
       //   ctx.rotate(element.getRadians(thisImg.rotation));
       //   ctx.drawImage(thisImg, 0, 0);
-      //   ctx.translate(-1 * element.left, -1 * element.top);
+      //   ctx.rotate((-1 * element.getRadians(thisImg.rotation)));
+      //   ctx.translate((-1 * element.left), (-1 * element.top));
       // }
 
       // // if (thisImg instanceof Array) {
@@ -104,6 +137,15 @@ var app = (function() {
     }
     var run = CURR_STATE + 'Run';
     api[run](dt,elements);
+  }
+
+  function getUpdatedElements(elements) {
+    for (var i = 0; i < elements.length; i++) {
+      if ('type' in elements[i] && elements[i].type === 'widgetController') {
+        elements[i] = elements[i].getImage();
+      }
+    }
+    return elements;
   }
 
   //Home screen before run
@@ -132,7 +174,16 @@ var app = (function() {
   };
 
   //Game loading
-  // var widgets = [];
+  api.widgetsControllers = [];
+  api.getControllerIndex = function(id) {
+    for (var i = 0; i < api.widgetsControllers.length; i++) {
+      if (api.widgetsControllers[i].options.controllerID === id) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
   api.gameLoad = function() {
     var headerImg = new Image();
     headerImg.ready = false;
@@ -144,14 +195,15 @@ var app = (function() {
     elements.push(headerImg);
 
 
-    
+
 
     //for devel. this will be replaced with all of the individual components
     var widgets = ["dial"]; //"record", , "slider", "button", "switch", "toggle"]
     wc = widgetsController();
-    var widgetAction = function() {
+    var widgetAction = function(active, clickX, clickY) {
       //check here to see if they clicked or moved correctly
-      if (this.controller.updateValue() === false) { return; }
+      var index = api.getControllerIndex(this.controllerID);
+      if (index === -1 || api.widgetsControllers[index].updateValue(active, clickX, clickY) === false) { return; }
 
       //update timer
       lastTime = parseInt(new Date().getTime()/getBarSpeed());
@@ -180,9 +232,11 @@ var app = (function() {
       options.left = 0;
       options.top = 140;
       options.action = widgetAction;
+      options.controllerID = new Date().getTime();
 
       var widget = wc.createWidget(100, 100, widgets[i], options);
-      elements.push(widget);
+      api.widgetsControllers.push(widget);
+      elements.push(widget.getImage());
 
       // }
     }
@@ -235,7 +289,7 @@ var app = (function() {
     api.updateElement('timeBarImg','left',lastTime - currTime);
 
     // Update our widgets
-    
+    elements = getUpdatedElements(elements);
 
     //Check to see if they ran out of time
     if (lastTime - currTime > -320) {

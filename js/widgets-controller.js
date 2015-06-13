@@ -90,6 +90,7 @@ var dialController = function(sizeW, sizeV, type, options) {
     image: 'imgs/Dial.png',
     dialRotation: -120,
     prevImgObj: null,
+    options: {},
 
     init: function(sizeW, sizeV, type, options) {
       var self = this;
@@ -101,15 +102,12 @@ var dialController = function(sizeW, sizeV, type, options) {
       self.radius = self.size.width/2; // Should be able to tell where in non-equal-distance box this circle sits. Dont rely on x width only.
       // self.anglePerValue = (360 / self.maxDialValue);
 
-      // Map option key/values to widget key/values
-      for (var key in options) {
-        self[key] = options[key];
-      }
+      self.options = options;
     },
 
     updateValue: function(active, relCursorX, relCursorY) {
       var self = this;
-console.log('hello');
+
       // Mouseup detected and we want to turn off this widget.
       if (!active) {
         // Disable changing this value
@@ -164,8 +162,9 @@ console.log('hello');
       var img = new Image();
       img.src = self.image; //(self.value in self.images) ? self.images[self.value] : '';
       img.rotation = self.rotation;
-      // img.width = self.size.width;
-      // img.height = self.size.height;
+      for (var key in self.options) {
+        img[key] = options[key];
+      }
       self.prevImgObj = img;
       return img;
     },
