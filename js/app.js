@@ -188,7 +188,7 @@ var app = (function() {
     var headerImg = new Image();
     headerImg.ready = false;
     headerImg.onload = setAssetReady;
-    headerImg.src = 'imgs/header.png';
+    headerImg.src = 'imgs/BG_Club.gif';
     headerImg.left = 0;
     headerImg.top = 0;
     headerImg.name = 'headerImg';
@@ -298,7 +298,7 @@ var app = (function() {
       ctx.fillStyle = '#fff';
       ctx.fillText(level+1, 10, 40);
       ctx.font = '22px VT323';
-      ctx.fillText(score,320-ctx.measureText(score).width-10,40);
+      ctx.fillText(score,320-ctx.measureText(score).width-10,16);
     } else {
       CURR_STATE = GAME_STATES[4];
     }
@@ -366,7 +366,7 @@ var app = (function() {
     var transBottomImg = new Image();
     transBottomImg.ready = false;
     transBottomImg.onload = setAssetReady;
-    transBottomImg.src = 'imgs/transition.png';
+    transBottomImg.src = 'imgs/Turntable.png';
     transBottomImg.left = 0;
     transBottomImg.top = 240;
     transBottomImg.name = 'transBottomImg';
@@ -403,7 +403,7 @@ var app = (function() {
     var transTopImg = new Image();
     transTopImg.ready = false;
     transTopImg.onload = setAssetReady;
-    transTopImg.src = 'imgs/transition.png';
+    transTopImg.src = 'imgs/BG_Gradient.png';
     transTopImg.left = 0;
     transTopImg.top = 0;
     transTopImg.name = 'transTopImg';
@@ -415,9 +415,9 @@ var app = (function() {
     var transBottomImg = new Image();
     transBottomImg.ready = false;
     transBottomImg.onload = setAssetReady;
-    transBottomImg.src = 'imgs/transition.png';
+    transBottomImg.src = 'imgs/Turntable.png';
     transBottomImg.left = 0;
-    transBottomImg.top = 240;
+    transBottomImg.top = 151;
     transBottomImg.name = 'transBottomImg';
     transBottomImg.action = function() {
       CURR_STATE = GAME_STATES[0];
@@ -428,11 +428,10 @@ var app = (function() {
   api.gameoverRun = function() {
     drawElements(elements);
     ctx.font = '48px VT323';
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#FFB54B';
     ctx.fillText('GAME OVER', 160 - (ctx.measureText('GAME OVER').width/2), 40);
-    ctx.fillText('SCORE', 160 - (ctx.measureText('SCORE').width/2), 100);
-    ctx.fillText(score, 160 - (ctx.measureText(score).width/2), 180);
-    ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 280);
+    ctx.fillText('SCORE: ' + score, 160 - (ctx.measureText('SCORE: ' + score).width/2), 80);
+    ctx.fillText('CLICK ANYWHERE', 160 - (ctx.measureText('CLICK ANYWHERE').width/2), 120);
   };
 
   api.transitionLoad = function() {
