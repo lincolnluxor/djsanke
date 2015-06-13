@@ -165,7 +165,6 @@ var app = (function() {
       ctx.fillStyle = '#fff';
       ctx.fillText(level+1, 10, 40);
       ctx.font = '22px VT323';
-      console.log(ctx.measureText(score).width);
       ctx.fillText(score,320-ctx.measureText(score).width-10,40);
     } else {
       CURR_STATE = GAME_STATES[0];
