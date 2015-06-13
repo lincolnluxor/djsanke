@@ -9,11 +9,13 @@ var app = (function() {
   var canvasLeft = canvas.offsetLeft;
   var canvasTop = canvas.offsetTop;
   var elements = [];
-  var GAME_STATES = ['splash','game','leaderboard'];
+  var GAME_STATES = ['splash','game','leaderboard','levelup'];
   var CURR_STATE = GAME_STATES[0];
   var LAST_STATE;
   var startTime;
   var lastTime;
+  var timer = [30,20,10,7];
+  var level;
 
   canvas.addEventListener('click',function(e) {
     var clickX = e.pageX - canvasLeft;
@@ -71,6 +73,7 @@ var app = (function() {
 
   //Home screen
   api.splashLoad = function() {
+    level = 0;
     var splashImg = new Image();
     splashImg.ready = false;
     splashImg.onload = setAssetReady;
@@ -125,17 +128,18 @@ var app = (function() {
     barImg.top = 139;
     barImg.name = 'barImg';
     elements.push(barImg);
-    
-    lastTime = parseInt(new Date().getTime()/30);
+
+    lastTime = parseInt(new Date().getTime()/getBarSpeed());
   };
 
   api.gameRun = function(time) {
-    startTime = parseInt(new Date().getTime()/30);
+    startTime = parseInt(new Date().getTime()/getBarSpeed());
     api.updateElement('barImg','left',lastTime - startTime);
     if (lastTime - startTime > -320) {
       drawElements(elements);
     } else {
-      CURR_STATE = GAME_STATES[0];
+//      CURR_STATE = GAME_STATES[0];
+      CURR_STATE = GAME_STATES[3];
     }
   };
 
@@ -145,6 +149,23 @@ var app = (function() {
         element[prop] = value;
       }
     });
+  };
+  
+  api.levelupLoad = function() {
+    level += 1;
+  };
+  
+  api.levelupRun = function() {
+    CURR_STATE = GAME_STATES[1];
+  };
+  
+  function getBarSpeed() {
+    if (level > 3) {
+      barSpeed = timer[3];
+    } else {
+      barSpeed = timer[level - 1];
+    }
+    return barSpeed;
   }
 
   //for testing
