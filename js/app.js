@@ -37,6 +37,7 @@ var app = (function() {
       'text': '',
       'instructions': 'CHANGE FEEDBACK'
   }];
+  var activeControl;
 
   var withinElementBounds = function(element, clickX, clickY) {
     return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
@@ -143,8 +144,10 @@ var app = (function() {
           ctx.font = '20px VT323';
           ctx.fillStyle = '#000';
           ctx.fillText(controlItem.label, control.textTop, control.textLeft);
-          ctx.fillStyle = '#fff';
-          ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
+          if (control.active) {
+            ctx.fillStyle = '#fff';
+            ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
+          }
         };
       });
     });
@@ -247,6 +250,7 @@ var app = (function() {
         }
       }
     };
+    activeControl = Math.floor(Math.random() * widgets.length);
     for (var i = 0; i < widgets.length; i++) {
 
       // var widgetImg = widget.getImage(); //setWidgetProps(, { name: widgets[i].type + i, top: 0, left: 150 })
@@ -261,6 +265,9 @@ var app = (function() {
       options.textTop = 5;
       options.textLeft = 175;
       options.controllerID = new Date().getTime();
+      if (i === activeControl) {
+        options.active = true;
+      }
 
       var widget = wc.createWidget(100, 100, widgets[i], options);
       api.widgetsControllers.push(widget);
