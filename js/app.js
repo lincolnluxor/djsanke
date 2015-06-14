@@ -30,6 +30,12 @@ var app = (function() {
   var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '340px', right: '5px' }); //for devel. shows FPS on screen.
   var transPos = 0;
   var lastCanvas;
+  var controls = [];
+  var controlList = [{
+      'name': 'switch0',
+      'label': 'FEEDBACK',
+      'text': ''
+  }];
 
   var withinElementBounds = function(element, clickX, clickY) {
     return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
@@ -126,6 +132,20 @@ var app = (function() {
       // }
     });
   }
+
+  function drawText(controls) {
+    controls.forEach(function(control) {
+      controlList.forEach(function(controlItem) {
+//        console.log(control.name + ' - ' + controlItem.name);
+        if (control.name == controlItem.name) {
+          console.log(control.textLeft);
+          ctx.font = '20px VT323';
+          ctx.fillStyle = '#000';
+          ctx.fillText(controlItem.label, control.textTop, control.textLeft);
+        };
+      });
+    });
+  };
 
   //update state of the game
   function update(dt) {
@@ -233,14 +253,16 @@ var app = (function() {
       options.ready = false;
       options.onload = setAssetReady;
       options.left = 0;
-      options.top = 140;
+      options.top = 180;
       options.action = widgetAction;
+      options.textTop = 5;
+      options.textLeft = 175;
       options.controllerID = new Date().getTime();
 
       var widget = wc.createWidget(100, 100, widgets[i], options);
       api.widgetsControllers.push(widget);
       elements.push(widget.getImage());
-
+      controls.push(options);
       // }
     }
 
@@ -297,6 +319,7 @@ var app = (function() {
     //Check to see if they ran out of time
     if (lastTime - currTime > -320) {
       drawElements(elements);
+      drawText(controls);
       ctx.font = '48px VT323';
       ctx.fillStyle = '#fff';
       ctx.fillText(level+1, 10, 40);
