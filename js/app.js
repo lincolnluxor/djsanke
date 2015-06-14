@@ -30,6 +30,14 @@ var app = (function() {
   var fpsmeter = new FPSMeter({ decimals: 0, graph: true, theme: 'dark', left: '340px', right: '5px' }); //for devel. shows FPS on screen.
   var transPos = 0;
   var lastCanvas;
+  var controls = [];
+  var controlList = [{
+      'name': 'switch0',
+      'label': 'FEEDBACK',
+      'text': '',
+      'instructions': 'CHANGE FEEDBACK'
+  }];
+  var activeControl;
 
   var withinElementBounds = function(element, clickX, clickY) {
     return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
@@ -127,6 +135,24 @@ var app = (function() {
     });
   }
 
+  function drawText(controls) {
+    controls.forEach(function(control) {
+      controlList.forEach(function(controlItem) {
+//        console.log(control.name + ' - ' + controlItem.name);
+        if (control.name == controlItem.name) {
+          console.log(control.textLeft);
+          ctx.font = '20px VT323';
+          ctx.fillStyle = '#000';
+          ctx.fillText(controlItem.label, control.textTop, control.textLeft);
+          if (control.active) {
+            ctx.fillStyle = '#fff';
+            ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
+          }
+        };
+      });
+    });
+  };
+
   //update state of the game
   function update(dt) {
     ctx.clearRect(0,0,CANVAS_WIDTH,CANVAS_HEIGHT);
@@ -201,7 +227,8 @@ var app = (function() {
     //for devel. this will be replaced with all of the individual components
     var widgets = [
       {type: "switch", width: 100, height: 100},
-      {type: "toggle", width: 100, height: 100}
+      {type: "toggle", width: 100, height: 100},
+      {type: "button", width: 100, height: 100}
     ]; //"record", "dial", "slider", "button", "switch", "toggle"]
     wc = widgetsController();
     var widgetAction = function(active, clickX, clickY) {
@@ -227,20 +254,26 @@ var app = (function() {
         }
       }
     };
+    activeControl = Math.floor(Math.random() * widgets.length);
     for (var i = 0; i < widgets.length; i++) {
       var options = {};
       options.name = widgets[i].type + i;
       options.ready = false;
       options.onload = setAssetReady;
       options.left = (i * widgets[i].width);
-      options.top = 160;
+      options.top = 180;
       options.action = widgetAction;
+      options.textTop = 5;
+      options.textLeft = 175;
       options.controllerID = new Date().getTime();
+      if (i === activeControl) {
+        options.active = true;
+      }
 
       var widget = wc.createWidget(widgets[i].width, widgets[i].height, widgets[i].type, options);
       api.widgetsControllers.push(widget);
       elements.push(widget.getImage());
-
+      controls.push(options);
       // }
     }
 
@@ -297,6 +330,7 @@ var app = (function() {
     //Check to see if they ran out of time
     if (lastTime - currTime > -320) {
       drawElements(elements);
+      drawText(controls);
       ctx.font = '48px VT323';
       ctx.fillStyle = '#fff';
       ctx.fillText(level+1, 10, 40);
