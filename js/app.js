@@ -31,12 +31,32 @@ var app = (function() {
   var transPos = 0;
   var lastCanvas;
   var controls = [];
-  var controlList = [{
+  var controlList = [
+    {
       'name': 'switch0',
       'label': 'FEEDBACK',
       'text': '',
-      'instructions': 'CHANGE FEEDBACK'
-  }];
+      'instructions': 'CHANGE FEEDBACK',
+      'textTop': 5,
+      'textLeft': 175
+    },
+    {
+      'name': 'toggle0',
+      'label': 'BOTTLE RATS',
+      'text': '',
+      'instructions': 'CHANGE BOTTLE RATS',
+      'textTop': 50,
+      'textLeft': 175
+    },
+    {
+      'name': 'button0',
+      'label': 'IT REAL GOOD',
+      'text': '',
+      'instructions': 'PUSH IT REAL GOOD',
+      'textTop': 100,
+      'textLeft': 175
+    }
+  ];
   var activeControl;
 
   var withinElementBounds = function(element, clickX, clickY) {
@@ -142,7 +162,7 @@ var app = (function() {
         if (control.name == controlItem.name) {
           ctx.font = '20px VT323';
           ctx.fillStyle = '#000';
-          ctx.fillText(controlItem.label, control.textTop, control.textLeft);
+          ctx.fillText(controlItem.label, controlItem.textTop, controlItem.textLeft);
           if (control.active) {
             ctx.fillStyle = '#fff';
             ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
@@ -225,9 +245,9 @@ var app = (function() {
 
     //for devel. this will be replaced with all of the individual components
     var widgets = [
-      {type: "switch", width: 100, height: 100},
-      {type: "toggle", width: 100, height: 100},
-      {type: "button", width: 100, height: 100}
+      {type: "switch", width: 100, height: 100, top: 180, left: 5},
+      {type: "toggle", width: 100, height: 100, top: 230, left: 50},
+      {type: "button", width: 100, height: 100, top: 280, left: 100}
     ]; //"record", "dial", "slider", "button", "switch", "toggle"]
     wc = widgetsController();
     var widgetAction = function(active, clickX, clickY) {
@@ -259,11 +279,9 @@ var app = (function() {
       options.name = widgets[i].type + i;
       options.ready = false;
       options.onload = setAssetReady;
-      options.left = (i * widgets[i].width);
-      options.top = 180;
+      options.left = widgets[i].left;
+      options.top = widgets[i].top;
       options.action = widgetAction;
-      options.textTop = 5;
-      options.textLeft = 175;
       options.controllerID = new Date().getTime();
       if (i === activeControl) {
         options.active = true;
