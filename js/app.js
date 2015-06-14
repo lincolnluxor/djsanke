@@ -68,21 +68,22 @@ var app = (function() {
 //    console.log('x: '+clickX+' y: '+clickY); //for devel. shows click location in game
     elements.forEach(function(element) {
       if (withinElementBounds(element, clickX, clickY) === true && ('action' in element)) {
+//        console.log(element.name);
         element.action(true, clickX, clickY);
       }
     });
   });
 
-  canvas.addEventListener('mousemove',function(e) {
-    var clickX = getCursorPosition(e).x;
-    var clickY = getCursorPosition(e).y;
-
-    elements.forEach(function(element) {
-      if (mouseIsDown === true && ('action' in element)) {
-        element.action(true, clickX, clickY);
-      }
-    });
-  });
+//  canvas.addEventListener('mousemove',function(e) {
+//    var clickX = getCursorPosition(e).x;
+//    var clickY = getCursorPosition(e).y;
+//
+//    elements.forEach(function(element) {
+//      if (mouseIsDown === true && ('action' in element)) {
+//        element.action(true, clickX, clickY);
+//      }
+//    });
+//  });
 
   //timing
   function timestamp() {
