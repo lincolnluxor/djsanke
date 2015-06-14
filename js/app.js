@@ -110,28 +110,7 @@ var app = (function() {
   //loop through elements array and paint to ctx
   function drawElements(elements) {
     elements.forEach(function(element) {
-      // var thisImg = element;
-      // if ('controllerID' in element) { console.log(element); }
-      // if ('controllerID' in element) {
-      //   thisImg = element.getImage();
-      // }
-
-      // if ('rotation' in thisImg) {
-      //   // left = 0;
-      //   // top = 0;
-      //   ctx.translate(element.left, element.top);
-      //   ctx.rotate(element.getRadians(thisImg.rotation));
-      //   ctx.drawImage(thisImg, 0, 0);
-      //   ctx.rotate((-1 * element.getRadians(thisImg.rotation)));
-      //   ctx.translate((-1 * element.left), (-1 * element.top));
-      // }
-
-      // // if (thisImg instanceof Array) {
-      // //   thisImg.map(function(img) { ctx.drawImage(img, img.left, img.top); })
-      // // }
-      // else {
-        ctx.drawImage(element, element.left, element.top);
-      // }
+      ctx.drawImage(element, element.left, element.top);
     });
   }
 
@@ -146,10 +125,10 @@ var app = (function() {
             ctx.fillStyle = '#fff';
             ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
           }
-        };
+        }
       });
     });
-  };
+  }
 
   //update state of the game
   function update(dt) {

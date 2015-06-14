@@ -10,7 +10,7 @@ var widgetsController = function() {
     createWidget: function(sizeW, sizeV, type, options) {
       var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type + 'Controller';
       if (typeof type !== 'undefined' && controllerName in window) {
-        var controller = window[controllerName](sizeW, sizeV, type, options); // Call dynamic-named function.
+        var controller = new window[controllerName](sizeW, sizeV, type, options); // Call dynamic-named function.
         // controller.type = 'widgetController';
         return controller;
       }
