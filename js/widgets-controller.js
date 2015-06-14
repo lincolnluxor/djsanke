@@ -8,7 +8,7 @@ var widgetsController = function() {
 
     // type can be "record", "dial", "slider", "button", "switch", or "toggle"
     createWidget: function(sizeW, sizeV, type, options) {
-      var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type.toString() + 'Controller';
+      var controllerName = (type === 'switch' || type === 'toggle') ? 'buttonController' : type + 'Controller';
       if (typeof type !== 'undefined' && controllerName in window) {
         var controller = window[controllerName](sizeW, sizeV, type, options); // Call dynamic-named function.
         // controller.type = 'widgetController';
@@ -291,7 +291,7 @@ var buttonController = function(sizeW, sizeV, type, options) {
   controller = {
     size: {width: 0, height: 0},
     // maxDims: {x: 0, y: 0},
-    images: {on: '', off: ''},
+    images: {on: 'imgs/PushButton_ON.png', off: 'imgs/PushButton_OFF.png'},
     value: false,
     options: {},
 
@@ -309,9 +309,6 @@ var buttonController = function(sizeW, sizeV, type, options) {
       else if (type === "toggle") {
         self.images.on = 'imgs/Toggle_Left.png';
         self.images.off = 'imgs/Toggle_Right.png';
-      }
-      else {
-        // Need button graphics
       }
     },
 
