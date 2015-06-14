@@ -199,7 +199,10 @@ var app = (function() {
 
 
     //for devel. this will be replaced with all of the individual components
-    var widgets = ["switch"]; //"record", "dial", "slider", "button", "switch", "toggle"]
+    var widgets = [
+      {type: "switch", width: 100, height: 100},
+      {type: "toggle", width: 100, height: 100}
+    ]; //"record", "dial", "slider", "button", "switch", "toggle"]
     wc = widgetsController();
     var widgetAction = function(active, clickX, clickY) {
       //check here to see if they clicked or moved correctly
@@ -225,19 +228,16 @@ var app = (function() {
       }
     };
     for (var i = 0; i < widgets.length; i++) {
-
-      // var widgetImg = widget.getImage(); //setWidgetProps(, { name: widgets[i].type + i, top: 0, left: 150 })
-      
       var options = {};
-      options.name = widgets[i] + i;
+      options.name = widgets[i].type + i;
       options.ready = false;
       options.onload = setAssetReady;
-      options.left = 0;
-      options.top = 140;
+      options.left = (i * widgets[i].width);
+      options.top = 160;
       options.action = widgetAction;
       options.controllerID = new Date().getTime();
 
-      var widget = wc.createWidget(100, 100, widgets[i], options);
+      var widget = wc.createWidget(widgets[i].width, widgets[i].height, widgets[i].type, options);
       api.widgetsControllers.push(widget);
       elements.push(widget.getImage());
 
