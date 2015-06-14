@@ -138,9 +138,7 @@ var app = (function() {
   function drawText(controls) {
     controls.forEach(function(control) {
       controlList.forEach(function(controlItem) {
-//        console.log(control.name + ' - ' + controlItem.name);
         if (control.name == controlItem.name) {
-          console.log(control.textLeft);
           ctx.font = '20px VT323';
           ctx.fillStyle = '#000';
           ctx.fillText(controlItem.label, control.textTop, control.textLeft);
