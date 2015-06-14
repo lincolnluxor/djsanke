@@ -34,7 +34,8 @@ var app = (function() {
   var controlList = [{
       'name': 'switch0',
       'label': 'FEEDBACK',
-      'text': ''
+      'text': '',
+      'instructions': 'CHANGE FEEDBACK'
   }];
 
   var withinElementBounds = function(element, clickX, clickY) {
@@ -142,6 +143,8 @@ var app = (function() {
           ctx.font = '20px VT323';
           ctx.fillStyle = '#000';
           ctx.fillText(controlItem.label, control.textTop, control.textLeft);
+          ctx.fillStyle = '#fff';
+          ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
         };
       });
     });
