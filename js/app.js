@@ -37,27 +37,111 @@ var app = (function() {
       'label': 'FEEDBACK',
       'text': '',
       'instructions': 'CHANGE FEEDBACK',
-      'textTop': 5,
-      'textLeft': 175
+      'textTop': 175,
+      'textLeft': 5
     },
     {
-      'name': 'toggle0',
+      'name': 'toggle1',
       'label': 'BOTTLE RATS',
       'text': '',
       'instructions': 'CHANGE BOTTLE RATS',
-      'textTop': 50,
-      'textLeft': 175
+      'textTop': 175,
+      'textLeft': 100
     },
     {
-      'name': 'button0',
+      'name': 'button2',
       'label': 'IT REAL GOOD',
       'text': '',
       'instructions': 'PUSH IT REAL GOOD',
-      'textTop': 100,
-      'textLeft': 175
+      'textTop': 175,
+      'textLeft': 195
     }
   ];
   var activeControl;
+  var images = [
+    {
+      'name': 'splash',
+      'src': 'imgs/Sanke_Start.png',
+      'left': 0,
+      'top': 0,
+      'action': function(){
+        CURR_STATE = GAME_STATES[1];
+      },
+      'levels': ['splash']
+    },
+    {
+      'name': 'header',
+      'src': 'imgs/BG_Club.gif',
+      'left': 0,
+      'top': 0,
+      'action': null,
+      'levels': ['game']
+    },
+    {
+      'name': 'timeBar',
+      'src': 'imgs/bar.jpg',
+      'left': 0,
+      'top': 139,
+      'action': null,
+      'levels': ['game']
+    },
+    {
+      'name': 'transTop',
+      'src': 'imgs/transition.png',
+      'left': 0,
+      'top': 0,
+      'action': function(){
+        CURR_STATE = GAME_STATES[1];
+      },
+      'levels': ['transition','leaderboard','gameover']
+    },
+    {
+      'name': 'transBottom',
+      'src': 'imgs/Turntable.png',
+      'left': 0,
+      'top': 240,
+      'action': function(){
+        CURR_STATE = GAME_STATES[1];
+      },
+      'levels': ['transition','leaderboard','gameover']
+    },
+    {
+      'name': 'switchUp',
+      'src': 'imgs/Switch_Up.png',
+      'left': 0,
+      'top': 0,
+      'action': function() {
+      },
+      'levels': ['game']
+    },
+    {
+      'name': 'switchDown',
+      'src': 'imgs/Switch_Down.png',
+      'left': 0,
+      'top': 0,
+      'action': function() {
+      },
+      'levels': ['game']
+    }
+  ];
+  
+  function loadImages(sources, callback) {
+    var images = {};
+    var loadedImages = 0;
+    var numImages = 0;
+    for(var src in sources) {
+      numImages++;
+    }
+    for(var src in sources) {
+      images[src] = new Image();
+      images[src].onload = function() {
+        if(++loadedImages >= numImages) {
+          callback(images);
+        }
+      };
+      images[src].src = sources[src];
+    }
+  }
 
   var withinElementBounds = function(element, clickX, clickY) {
     return (clickY > element.top && clickY < element.top + element.height && clickX > element.left && clickX < element.left + element.width);
@@ -141,7 +225,7 @@ var app = (function() {
         if (control.name == controlItem.name) {
           ctx.font = '20px VT323';
           ctx.fillStyle = '#000';
-          ctx.fillText(controlItem.label, controlItem.textTop, controlItem.textLeft);
+          ctx.fillText(controlItem.label, controlItem.textLeft, controlItem.textTop);
           if (control.active) {
             ctx.fillStyle = '#fff';
             ctx.fillText(controlItem.instructions,160-(ctx.measureText(controlItem.instructions).width/2),130);
@@ -225,8 +309,8 @@ var app = (function() {
     //for devel. this will be replaced with all of the individual components
     var widgets = [
       {type: "switch", width: 100, height: 100, top: 180, left: 5},
-      {type: "toggle", width: 100, height: 100, top: 230, left: 50},
-      {type: "button", width: 100, height: 100, top: 280, left: 100}
+      {type: "toggle", width: 100, height: 100, top: 230, left: 100},
+      {type: "button", width: 100, height: 100, top: 280, left: 150}
     ]; //"record", "dial", "slider", "button", "switch", "toggle"]
     wc = widgetsController();
     var widgetAction = function(active, clickX, clickY) {
